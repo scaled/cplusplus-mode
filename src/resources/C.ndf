@@ -1,0 +1,381 @@
+name: C
+scopeName: source.c
+repository:
+ access:
+  single:
+   pattern: (\.)([a-zA-Z_][a-zA-Z_0-9]*)\b(?!\s*\()
+   caps: 1=punctuation.separator.variable-access.c 2=variable.other.dot-access.c
+ block:
+  multi:
+   name: meta.block.c
+   begin: \{
+   bcaps: 0=punctuation.section.block.begin.c
+   end: \}
+   ecaps: 0=punctuation.section.block.end.c
+   patterns:
+    include: #block_innards
+ block_innards:
+  include: #preprocessor-rule-enabled-block
+  include: #preprocessor-rule-disabled-block
+  include: #preprocessor-rule-other-block
+  include: #sizeof
+  include: #access
+  include: source.c.functions
+  include: #c_function_call
+  single:
+   name: meta.initialization.c
+   pattern: (?x)\
+   (?:  \
+        (?: (?= \s )           (?<!else|new|return) (?<=\w)\s+      #  or word + space before name\
+        )\
+   )\
+   (\
+    (?: [A-Za-z_][A-Za-z0-9_]*+ | :: )++    |              # actual name\
+    (?: (?<=operator) (?: [-*&<>=+!]+ | \(\) | \[\] ) )?  # if it is a C++ operator\
+   )\
+    \s*(\()
+   caps: 1=variable.other.c 2=punctuation.definition.parameters.c
+  include: #block
+  include: $base
+ c_function_call:
+  single:
+   name: meta.function-call.c
+   pattern: (?x) (?: (?= \s )  (?:(?<=else|new|return) | (?<!\w)) (\s+))?\
+   (\b \
+    (?!(while|for|do|if|else|switch|catch|enumerate|return|sizeof|[cr]?iterate)\s*\()(?:(?!NS)[A-Za-z_][A-Za-z0-9_]*+\b | :: )++                  # actual name\
+   )\
+    \s*(\()
+   caps: 1=punctuation.whitespace.function-call.leading.c 2=support.function.any-method.c 3=punctuation.definition.parameters.c
+ comments:
+  single:
+   name: comment.block.c
+   pattern: ^/\* =(\s*.*?)\s*= \*/$\n?
+   caps: 1=meta.toc-list.banner.block.c
+  multi:
+   name: comment.block.c
+   begin: /\*
+   bcaps: 0=punctuation.definition.comment.begin.c
+   end: \*/
+   ecaps: 0=punctuation.definition.comment.end.c
+  single:
+   name: invalid.illegal.stray-comment-end.c
+   pattern: \*/.*\n
+  single:
+   name: comment.line.banner.c++
+   pattern: ^// =(\s*.*?)\s*=\s*$\n?
+   caps: 1=meta.toc-list.banner.line.c
+  multi:
+   begin: (^[ \t]+)?(?=//)
+   bcaps: 1=punctuation.whitespace.comment.leading.c++
+   end: $
+   patterns:
+    multi:
+     name: comment.line.double-slash.c++
+     begin: //
+     bcaps: 0=punctuation.definition.comment.c++
+     end: $
+     patterns:
+      single:
+       name: punctuation.separator.continuation.c++
+       pattern: (?>\\\s*\n)
+ disabled:
+  multi:
+   begin: ^\s*#\s*if(n?def)?\b.*$
+   end: ^\s*#\s*endif\b
+   patterns:
+    include: #disabled
+    include: #pragma-mark
+ parens:
+  multi:
+   name: meta.parens.c
+   begin: \(
+   bcaps: 0=punctuation.section.parens.begin.c
+   end: \)
+   ecaps: 0=punctuation.section.parens.end.c
+   patterns:
+    include: $base
+ pragma-mark:
+  single:
+   name: meta.section
+   pattern: ^\s*(#\s*(pragma\s+mark)\s+(.*))
+   caps: 1=meta.preprocessor.c 2=keyword.control.import.pragma.c 3=meta.toc-list.pragma-mark.c
+ preprocessor-rule-disabled:
+  multi:
+   begin: ^\s*(#(if)\s+(0)\b).*
+   bcaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   end: ^\s*(#\s*(endif)\b)
+   ecaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   patterns:
+    multi:
+     begin: ^\s*(#\s*(else)\b)
+     bcaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     end: (?=^\s*#\s*endif\b)
+     ecaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     patterns:
+      include: $base
+    multi:
+     name: comment.block.preprocessor.if-branch
+     begin: .
+     end: (?=^\s*#\s*(else|endif)\b)
+     patterns:
+      include: #disabled
+      include: #pragma-mark
+ preprocessor-rule-disabled-block:
+  multi:
+   begin: ^\s*(#(if)\s+(0)\b).*
+   bcaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   end: ^\s*(#\s*(endif)\b)
+   ecaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   patterns:
+    multi:
+     begin: ^\s*(#\s*(else)\b)
+     bcaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     end: (?=^\s*#\s*endif\b)
+     ecaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     patterns:
+      include: #block_innards
+    multi:
+     name: comment.block.preprocessor.if-branch.in-block
+     begin: .
+     end: (?=^\s*#\s*(else|endif)\b)
+     patterns:
+      include: #disabled
+      include: #pragma-mark
+ preprocessor-rule-enabled:
+  multi:
+   begin: ^\s*(#(if)\s+(0*1)\b)
+   bcaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   end: ^\s*(#\s*(endif)\b)
+   ecaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   patterns:
+    multi:
+     contentName: comment.block.preprocessor.else-branch
+     begin: ^\s*(#\s*(else)\b).*
+     bcaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     end: (?=^\s*#\s*endif\b)
+     ecaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     patterns:
+      include: #disabled
+      include: #pragma-mark
+    multi:
+     begin: .
+     end: (?=^\s*#\s*(else|endif)\b)
+     patterns:
+      include: $base
+ preprocessor-rule-enabled-block:
+  multi:
+   begin: ^\s*(#(if)\s+(0*1)\b)
+   bcaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   end: ^\s*(#\s*(endif)\b)
+   ecaps: 1=meta.preprocessor.c 2=keyword.control.import.if.c 3=constant.numeric.preprocessor.c
+   patterns:
+    multi:
+     contentName: comment.block.preprocessor.else-branch.in-block
+     begin: ^\s*(#\s*(else)\b).*
+     bcaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     end: (?=^\s*#\s*endif\b)
+     ecaps: 1=meta.preprocessor.c 2=keyword.control.import.else.c
+     patterns:
+      include: #disabled
+      include: #pragma-mark
+    multi:
+     begin: .
+     end: (?=^\s*#\s*(else|endif)\b)
+     patterns:
+      include: #block_innards
+ preprocessor-rule-other:
+  multi:
+   begin: ^\s*(#\s*(if(n?def)?)\b.*?(?:(?=(?://|/\*))|$))
+   bcaps: 1=meta.preprocessor.c 2=keyword.control.import.c
+   end: ^\s*(#\s*(endif)\b)
+   ecaps: 1=meta.preprocessor.c 2=keyword.control.import.c
+   patterns:
+    include: $base
+ preprocessor-rule-other-block:
+  multi:
+   begin: ^\s*(#\s*(if(n?def)?)\b.*?(?:(?=(?://|/\*))|$))
+   bcaps: 1=meta.preprocessor.c 2=keyword.control.import.c
+   end: ^\s*(#\s*(endif)\b)
+   ecaps: 1=meta.preprocessor.c 2=keyword.control.import.c
+   patterns:
+    include: #block_innards
+ sizeof:
+  single:
+   name: keyword.operator.sizeof.c
+   pattern: \b(sizeof)\b
+ string_escaped_char:
+  single:
+   name: constant.character.escape.c
+   pattern: \\(\\|[abefnprtv'"?]|[0-3]\d{0,2}|[4-7]\d?|x[a-fA-F0-9]{0,2}|u[a-fA-F0-9]{0,4}|U[a-fA-F0-9]{0,8})
+  single:
+   name: invalid.illegal.unknown-escape.c
+   pattern: \\.
+ string_placeholder:
+  single:
+   name: constant.other.placeholder.c
+   pattern: (?x)%\
+          (\d+\$)?                             # field (argument #)\
+          [0\- +']*                           # flags\
+          [,;:_]?                              # separator character (AltiVec)\
+          ((-?\d+)|\*(-?\d+\$)?)?              # minimum field width\
+          (\.((-?\d+)|\*(-?\d+\$)?)?)?         # precision\
+          (hh|h|ll|l|j|t|z|q|L|vh|vl|v|hv|hl)? # length modifier\
+          [diouxXDOUeEfFgGaACcSspn%]           # conversion type
+  single:
+   name: invalid.illegal.placeholder.c
+   pattern: %
+patterns:
+ include: #preprocessor-rule-enabled
+ include: #preprocessor-rule-disabled
+ include: #preprocessor-rule-other
+ include: #comments
+ include: source.c.platform
+ single:
+  name: keyword.control.c
+  pattern: \b(break|case|continue|default|do|else|for|goto|if|_Pragma|return|switch|while)\b
+ single:
+  name: storage.type.c
+  pattern: \b(asm|__asm__|auto|bool|_Bool|char|_Complex|double|enum|float|_Imaginary|int|long|short|signed|struct|typedef|union|unsigned|void)\b
+ single:
+  name: storage.modifier.c
+  pattern: \b(const|extern|register|restrict|static|volatile|inline)\b
+ single:
+  name: constant.other.variable.mac-classic.c
+  pattern: \bk[A-Z]\w*\b
+ single:
+  name: variable.other.readwrite.global.mac-classic.c
+  pattern: \bg[A-Z]\w*\b
+ single:
+  name: variable.other.readwrite.static.mac-classic.c
+  pattern: \bs[A-Z]\w*\b
+ single:
+  name: constant.language.c
+  pattern: \b(NULL|true|false|TRUE|FALSE)\b
+ include: #sizeof
+ single:
+  name: constant.numeric.c
+  pattern: (?x)\b\
+   (  (?i:\
+         0x ( \h+    ( ' \h+    )* )?  # Hexadecimal\
+      |  0b ( [0-1]+ ( ' [0-1]+ )* )?  # Binary\
+      |  0  ( [0-7]+ ( ' [0-7]+ )* )   # Octal\
+      |     ( [0-9]+ ( ' [0-9]+ )* )   # Decimal\
+      )\
+      ( ([uUfF] | u?ll? | U?LL?)\b | (?<inc0>') | \b )\
+   |  ( [0-9]+ ( ' [0-9]+ )* )?\
+      (?i:\
+         \. ( [0-9]+ ( ' [0-9]+ )* ) E(\+|-)? ( [0-9]+ ( ' [0-9]+ )* )\
+      |  \. ( [0-9]+ ( ' [0-9]+ )* )\
+      |  E(\+|-)? ( [0-9]+ ( ' [0-9]+ )* )\
+      )\
+      ( (?<inc1>') | \b )\
+   )
+  caps: 1=invalid.illegal.digit-separator-should-not-be-last.c++
+ multi:
+  name: string.quoted.double.c
+  begin: "
+  bcaps: 0=punctuation.definition.string.begin.c
+  end: "
+  ecaps: 0=punctuation.definition.string.end.c
+  patterns:
+   include: #string_escaped_char
+   include: #string_placeholder
+ multi:
+  name: string.quoted.single.c
+  begin: '
+  bcaps: 0=punctuation.definition.string.begin.c
+  end: '
+  ecaps: 0=punctuation.definition.string.end.c
+  patterns:
+   include: #string_escaped_char
+ multi:
+  name: meta.preprocessor.macro.c
+  begin: (?x)\
+          ^\s*\#\s*(define)\s+             # define\
+          ((?<id>[a-zA-Z_][a-zA-Z0-9_]*))  # macro name\
+          (?:                              # and optionally:\
+              (\()                         # an open parenthesis\
+                  (\
+                      \s* [^\s]+ \s*       # first argument\
+                      ((,) \s* [^\s]+ \s*)*  # additional arguments\
+                      (?:\.\.\.)?          # varargs ellipsis?\
+                  )\
+              (\))                         # a close parenthesis\
+          )?
+  bcaps: 1=keyword.control.import.define.c 2=entity.name.function.preprocessor.c 4=punctuation.definition.parameters.begin.c 5=variable.parameter.preprocessor.c 7=punctuation.separator.parameters.c 8=punctuation.definition.parameters.end.c
+  end: (?=(?://|/\*))|$
+  patterns:
+   single:
+    name: punctuation.separator.continuation.c
+    pattern: (?>\\\s*\n)
+   include: $base
+ multi:
+  name: meta.preprocessor.diagnostic.c
+  begin: ^\s*#\s*(error|warning)\b
+  bcaps: 1=keyword.control.import.error.c
+  end: $
+  ecaps: 1=keyword.control.import.error.c
+  patterns:
+   single:
+    name: punctuation.separator.continuation.c
+    pattern: (?>\\\s*\n)
+ multi:
+  name: meta.preprocessor.c.include
+  begin: ^\s*#\s*(include|import)\b
+  bcaps: 1=keyword.control.import.include.c
+  end: (?=(?://|/\*))|$
+  patterns:
+   single:
+    name: punctuation.separator.continuation.c
+    pattern: (?>\\\s*\n)
+   multi:
+    name: string.quoted.double.include.c
+    begin: "
+    bcaps: 0=punctuation.definition.string.begin.c
+    end: "
+    ecaps: 0=punctuation.definition.string.end.c
+   multi:
+    name: string.quoted.other.lt-gt.include.c
+    begin: <
+    bcaps: 0=punctuation.definition.string.begin.c
+    end: >
+    ecaps: 0=punctuation.definition.string.end.c
+ include: #pragma-mark
+ multi:
+  name: meta.preprocessor.c
+  begin: ^\s*#\s*(define|defined|elif|else|if|ifdef|ifndef|line|pragma|undef)\b
+  bcaps: 1=keyword.control.import.c
+  end: (?=(?://|/\*))|$
+  ecaps: 1=keyword.control.import.c
+  patterns:
+   single:
+    name: punctuation.separator.continuation.c
+    pattern: (?>\\\s*\n)
+ single:
+  name: support.type.posix-reserved.c
+  pattern: \b([a-z0-9_]+_t)\b
+ include: #block
+ multi:
+  name: meta.function.c
+  begin: (?x)\
+      (?:  ^                                 # begin-of-line\
+        |  \
+           (?: (?= \s )           (?<!else|new|return) (?<=\w)      #  or word + space before name\
+             | (?= \s*[A-Za-z_] ) (?<!&&)       (?<=[*&>])   #  or type modifier before name\
+           )\
+      )\
+      (\s*) (?!(while|for|do|if|else|switch|catch|enumerate|return|sizeof|[cr]?iterate)\s*\()\
+      (\
+       (?: [A-Za-z_][A-Za-z0-9_]*+ | :: )++ |                  # actual name\
+       (?: (?<=operator) (?: [-*&<>=+!]+ | \(\) | \[\] ) )  # if it is a C++ operator\
+      )\
+       \s*(?=\()
+  bcaps: 1=punctuation.whitespace.function.leading.c 3=entity.name.function.c
+  end: (?<=\})|(?=#)|(;)
+  patterns:
+   include: #comments
+   include: #parens
+   single:
+    name: storage.modifier.$1.c++
+    pattern: \b(const|final|override|noexcept)\b
+   include: #block

@@ -1,0 +1,7 @@
+   name: cplusplus-mode
+ source: git:https://github.com/scaled/cplusplus-mode.git
+version: 1.0
+descrip: Provides language support for C++.
+ weburl: https://github.com/scaled/cplusplus-mode
+license: New BSD
+ depend: git:https://github.com/scaled/java-mode.git
