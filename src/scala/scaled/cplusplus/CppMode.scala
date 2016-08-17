@@ -2,7 +2,7 @@
 // Scaled C++ Mode - a Scaled major mode for editing C++ code
 // http://github.com/scaled/cplusplus-mode/blob/master/LICENSE
 
-package scaled.csharp
+package scaled.cplusplus
 
 import scaled._
 import scaled.code.{CodeConfig, Commenter}
