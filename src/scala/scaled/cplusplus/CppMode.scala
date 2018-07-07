@@ -5,7 +5,7 @@
 package scaled.cplusplus
 
 import scaled._
-import scaled.code.Commenter
+import scaled.code.{Commenter, BlockIndenter}
 import scaled.grammar.GrammarCodeMode
 
 @Major(name="cpp",
@@ -16,7 +16,18 @@ class CppMode (env :Env) extends GrammarCodeMode(env) {
 
   override def langScope = "source.c++"
 
-  override protected def createIndenter = new CppIndenter(config)
+  override protected def createIndenter = new BlockIndenter(config, Std.seq(
+    // bump extends/implements in two indentation levels
+    BlockIndenter.adjustIndentWhenMatchStart(Matcher.regexp("(extends|implements)\\b"), 2),
+    // align changed method calls under their dot
+    new BlockIndenter.AlignUnderDotRule(),
+    // handle javadoc and block comments
+    new BlockIndenter.BlockCommentRule(),
+    // handle indenting switch statements properly
+    new BlockIndenter.SwitchRule(),
+    // handle continued statements, with some special sauce for : after case
+    new BlockIndenter.CLikeContStmtRule()
+  ))
 
   override val commenter = new Commenter() {
     override def linePrefix  = "//"
